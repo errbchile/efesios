@@ -1,0 +1,959 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ruleta de Efesios</title>
+    <style>
+      :root {
+        --fondo1: #7b2ff7;
+        --fondo2: #f72f9a;
+        --fondo3: #ff8a3d;
+        --potencia: #ffd93d;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family:
+          "Nunito",
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+        min-height: 100vh;
+        color: #fff;
+        background: linear-gradient(
+          135deg,
+          var(--fondo1),
+          var(--fondo2) 50%,
+          var(--fondo3)
+        );
+        background-attachment: fixed;
+        display: flex;
+        justify-content: center;
+        padding: 28px 16px 48px;
+        overflow-x: hidden;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .bg-shapes .shape {
+        position: fixed;
+        opacity: 0.25;
+        font-size: 2rem;
+        animation: flotar 6s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .s1 {
+        top: 8%;
+        left: 8%;
+      }
+      .s2 {
+        top: 15%;
+        right: 10%;
+        font-size: 2.6rem;
+        animation-delay: 1s;
+      }
+      .s3 {
+        bottom: 20%;
+        left: 6%;
+        animation-delay: 2s;
+      }
+      .s4 {
+        bottom: 12%;
+        right: 8%;
+        animation-delay: 0.5s;
+      }
+      @keyframes flotar {
+        0%,
+        100% {
+          transform: translateY(0) rotate(0);
+        }
+        50% {
+          transform: translateY(-18px) rotate(15deg);
+        }
+      }
+      .container {
+        width: 100%;
+        max-width: 560px;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+      }
+      .header h1 {
+        font-family: "Fredoka", "Nunito", system-ui, sans-serif;
+        font-size: clamp(2rem, 7vw, 3rem);
+        text-shadow: 0 4px 0 rgba(0, 0, 0, 0.18);
+      }
+      .subtitle {
+        margin-top: 6px;
+        font-weight: 700;
+        opacity: 0.95;
+        font-size: 1rem;
+      }
+      .wheel-section {
+        margin-top: 24px;
+      }
+      .wheel-wrap {
+        position: relative;
+        width: min(86vw, 360px);
+        margin: 0 auto;
+        touch-action: none;
+        cursor: pointer;
+      }
+      .pointer {
+        position: absolute;
+        top: -16px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 2.4rem;
+        color: #fff;
+        text-shadow: 0 3px 0 rgba(0, 0, 0, 0.3);
+        z-index: 4;
+        pointer-events: none;
+      }
+      .power-ring {
+        position: absolute;
+        inset: -14px;
+        width: calc(100% + 28px);
+        height: calc(100% + 28px);
+        transform: rotate(-90deg);
+        z-index: 3;
+        pointer-events: none;
+      }
+      .power-bg {
+        fill: none;
+        stroke: rgba(255, 255, 255, 0.3);
+        stroke-width: 6;
+      }
+      .power-arc {
+        fill: none;
+        stroke: var(--potencia);
+        stroke-width: 6;
+        stroke-linecap: round;
+        stroke-dasharray: 301.6;
+        stroke-dashoffset: 301.6;
+      }
+      .wheel-wrap.cargando .wheel-cross {
+        animation: latir 0.4s ease-in-out infinite alternate;
+      }
+      @keyframes latir {
+        from {
+          transform: translate(-50%, -50%) scale(1);
+        }
+        to {
+          transform: translate(-50%, -50%) scale(1.15);
+        }
+      }
+      #ruleta {
+        width: 100%;
+        height: auto;
+        border-radius: 50%;
+        border: 8px solid #fff;
+        box-shadow:
+          0 12px 30px rgba(0, 0, 0, 0.35),
+          0 0 0 8px rgba(255, 255, 255, 0.25);
+        cursor: pointer;
+        background: #fff;
+        display: block;
+        position: relative;
+        z-index: 2;
+      }
+      #ruleta.girando {
+        cursor: wait;
+      }
+      .wheel-wrap.cargando #ruleta {
+        transform: scale(0.97);
+      }
+      .wheel-cross {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 76px;
+        height: 76px;
+        border-radius: 50%;
+        border: 5px solid #fff;
+        background: #2d2a55;
+        color: #ffd93d;
+        font-size: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        z-index: 2;
+        pointer-events: none;
+      }
+      .resultado {
+        margin-top: 24px;
+        background: #fff;
+        color: #2d2a55;
+        border-radius: 24px;
+        padding: 26px 22px;
+        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.3);
+        animation: pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .resultado.oculto {
+        display: none;
+      }
+      @keyframes pop {
+        from {
+          transform: scale(0.7);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      .res-categoria {
+        display: inline-block;
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 2px;
+        background: linear-gradient(90deg, var(--fondo1), var(--fondo2));
+        color: #fff;
+        padding: 5px 16px;
+        border-radius: 999px;
+        margin-bottom: 12px;
+      }
+      .res-texto {
+        font-size: 1.15rem;
+        font-weight: 600;
+        line-height: 1.55;
+        font-style: italic;
+      }
+      .res-cita {
+        margin-top: 12px;
+        font-weight: 700;
+        color: var(--fondo2);
+        font-size: 1.05rem;
+      }
+      .confeti span {
+        position: fixed;
+        top: -20px;
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        z-index: 99;
+        animation: caer linear forwards;
+        pointer-events: none;
+      }
+      @keyframes caer {
+        to {
+          transform: translateY(110vh) rotate(720deg);
+          opacity: 0.8;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-shapes" aria-hidden="true">
+      <span class="shape s1">✦</span>
+      <span class="shape s2">✿</span>
+      <span class="shape s3">♥</span>
+      <span class="shape s4">✦</span>
+    </div>
+
+    <main class="container">
+      <header class="header">
+        <h1 id="titulo">Ruleta de Efesios</h1>
+        <p id="subtitulo" class="subtitle"></p>
+      </header>
+
+      <section class="wheel-section">
+        <div class="wheel-wrap" id="wheelWrap">
+          <div class="pointer" aria-hidden="true">▼</div>
+          <svg class="power-ring" viewBox="0 0 100 100" aria-hidden="true">
+            <circle class="power-bg" cx="50" cy="50" r="48" />
+            <circle id="powerArc" class="power-arc" cx="50" cy="50" r="48" />
+          </svg>
+          <canvas
+            id="ruleta"
+            width="520"
+            height="520"
+            role="img"
+            aria-label="Mantén pulsada la ruleta para cargar fuerza y suelta para girar"
+          ></canvas>
+          <div class="wheel-cross" aria-hidden="true">✝</div>
+        </div>
+      </section>
+
+      <section id="resultado" class="resultado oculto" aria-live="polite">
+        <p id="resCategoria" class="res-categoria"></p>
+        <blockquote id="resTexto" class="res-texto"></blockquote>
+        <p id="resCita" class="res-cita"></p>
+      </section>
+    </main>
+
+    <div id="confeti" class="confeti" aria-hidden="true"></div>
+
+    <script>
+      /* ============================================================
+         ⚙️ AJUSTES — EDITA AQUÍ. Es el antiguo config.json,
+         ahora dentro del propio index.html para que el doble-clic
+         funcione sin errores de file:// ni servidor.
+         ============================================================ */
+      const CONFIG = {
+        titulo: "Ruleta de Efesios",
+        subtitulo: "Mantén pulsada la ruleta para cargar fuerza... ¡y suelta!",
+        duracionSegundos: 5,
+        vueltasMinimas: 5,
+        vueltasMaximas: 8,
+        tiempoCargaMaxMs: 1500,
+        fuerzaMinima: 0.2,
+        colorPotencia: "#FFD93D",
+        coloresRuleta: [
+          "#FF595E",
+          "#FFCA3A",
+          "#8AC926",
+          "#1982C4",
+          "#6A4C93",
+          "#FF924C",
+          "#00C2A8",
+          "#FF5D8F",
+        ],
+        etiquetasRuleta: [
+          "GRACIA",
+          "FE",
+          "LUZ",
+          "AMOR",
+          "PAZ",
+          "UNIDAD",
+          "FUERZA",
+          "ESPERANZA",
+        ],
+        fondoDegradado: ["#7B2FF7", "#F72F9A", "#FF8A3D"],
+        mostrarConfeti: true,
+        mostrarSonido: true,
+        textos: [
+          {
+            cita: "Efesios 1:4",
+            texto:
+              "1) Vs. 4 – “Dios nos escogió antes de la creación del mundo”. De acuerdo a esta frase de Pablo, Dios considera más importante a la humanidad entera que a un solo individuo. ¿Estás de acuerdo? ¿Por qué?",
+            categoria: "EFESIOS 1",
+          },
+          {
+            cita: "Efesios 1:7",
+            texto:
+              "2) Redimir significa: conseguir la libertad de una persona esclava, mediante el pago de un precio. Vs. 7 – Pablo afirma que el máximo Creador redimió a los seres humanos por medio de Jesucristo. ¿Tú consideras que eres o fuiste un esclavo? ¿De qué o de quién?",
+            categoria: "EFESIOS 1",
+          },
+          {
+            cita: "Efesios 1:7",
+            texto:
+              "3) Pecado significa: pensamiento, palabra o acción considerada en contra de la voluntad de Dios. Vs. 7 – ¿De qué maneras puedo enterarme de cuál es la voluntad de Dios?",
+            categoria: "EFESIOS 1",
+          },
+          {
+            cita: "Efesios 1:10",
+            texto:
+              "4) Vs. 10 – Pablo afirma que Dios realiza sus asuntos cuando el tiempo estimado se ha cumplido. ¿Te consideras una persona paciente? Cuéntanos alguna anécdota personal donde veamos dicha cualidad.",
+            categoria: "EFESIOS 1",
+          },
+          {
+            cita: "Efesios 1:13",
+            texto:
+              "5) El evangelio son esas buenas noticias que explican la transacción que Dios hizo con la sangre de su Hijo Jesucristo para redimirnos. Vs. 13 – Pablo afirma que estas buenas noticias nos trajeron salvación. ¿Por qué crees que Jesucristo quiso salvarnos?",
+            categoria: "EFESIOS 1",
+          },
+          {
+            cita: "Efesios 1:17",
+            texto:
+              "6) Vs. 17 – Pablo pide en sus oraciones al Dios de Jesucristo que nos dé espíritu de sabiduría y revelación para que lo conozcamos mejor. ¿Por qué Pablo quiere que conozcamos mejor al Creador?",
+            categoria: "EFESIOS 1",
+          },
+          {
+            cita: "Efesios 1:18",
+            texto:
+              "7) Vs. 18 – Pablo pide que se nos abran los ojos del entendimiento. ¿El “sentido común” será igual al “entendimiento que proviene de Dios”? Cuéntanos alguna anécdota donde tu “sentido común” te ha llevado allí donde habías planificado llegar. O viceversa.",
+            categoria: "EFESIOS 1",
+          },
+          {
+            cita: "Efesios 1:19",
+            texto:
+              "8) Vs. 19 – Pablo afirma que es incomparable el poder de Dios que está a favor de los que creemos. ¿De qué manera has experimentado el poder de Dios en tu vida?",
+            categoria: "EFESIOS 1",
+          },
+          {
+            cita: "Efesios 1:22",
+            texto:
+              "9) Vs. 22 – Pablo dice que Dios sometió todas las cosas al dominio de Cristo y que lo puso como cabeza de todo en la iglesia. ¿Crees que la iglesia es importante para Dios? ¿Por qué?",
+            categoria: "EFESIOS 1",
+          },
+          {
+            cita: "Efesios 2:1-2",
+            texto:
+              "10) Vs. 1 – Lee el versículo 1 y 2. Que yo sepa, yo jamás he estado muerto físicamente. ¿A qué se refiere Pablo cuando dice que en otro tiempo estábamos muertos?",
+            categoria: "EFESIOS 2",
+          },
+          {
+            cita: "Efesios 2:3",
+            texto:
+              "11) Vs. 3 – Pablo explica que antes seguíamos nuestra propia voluntad y que éramos impulsados por nuestros deseos pecaminosos. ¿Por qué Pablo mezcla estas dos frases? ¿Será que seguir mi propio criterio tiene alguna relación con deseos pecaminosos? Es decir, ¿según Pablo lo que yo deseo hacer naturalmente son deseos negativos? Comparte con nosotros si en tu pasado hubo alguna anécdota donde decidiste hacer lo que creías correcto y salió mal.",
+            categoria: "EFESIOS 2",
+          },
+          {
+            cita: "Efesios 2:4-5",
+            texto:
+              "12) Vs. 4 y 5 – Pablo explica que ahora estamos vivos gracias a Cristo y que Cristo surgió del amor y la misericordia que Dios tiene para con nosotros. El diccionario define la misericordia así: “sentir compasión por los que sufren y ofrecerles ayuda”. ¿Cuáles son tus sufrimientos en la actualidad? Compártelo con nosotros y cuando hayas terminado pide a alguien que lea en voz alta Juan 16:33.",
+            categoria: "EFESIOS 2",
+          },
+          {
+            cita: "Efesios 2:6",
+            texto:
+              "13) Vs. 6 – “Y en unión con Cristo Jesús, Dios nos resucitó y nos hizo sentar con él en las regiones celestiales”. Pienso que desde el cielo se puede ver todo con mayor claridad. Ahora que ya has conocido a Jesucristo, ¿qué cosas ves con claridad ahorita? Y si no, ¿qué cosas aún ves un poco borrosas? Comparte.",
+            categoria: "EFESIOS 2",
+          },
+          {
+            cita: "Efesios 2:7",
+            texto:
+              "14) Vs. 7 – En los seis versículos anteriores, Pablo ha estado explicando que antes estábamos perdidos y sufriendo, hasta que Jesús nos liberó. ¡Felicitaciones! Pero ahora en este versículo nos damos cuenta de que el propósito principal de Dios no era liberarnos, sino algo más trascendente. Y este versículo dice: “para mostrar en los tiempos venideros la incomparable riqueza de su gracia…”. Una persona con “gracia” es una persona que ejecuta favores inmerecidos. “Un regalo” podría ser un favor inmerecido. ¿Alguna vez le has regalado algo a alguien? ¿Cómo te sientes cuando le regalas algo a alguien a quien amas? Piensa cuando regalaste algo único. ¿Cómo te sentiste? Cuéntanos.",
+            categoria: "EFESIOS 2",
+          },
+          {
+            cita: "Efesios 2:10",
+            texto:
+              "15) Vs. 10 – “Porque somos hechura de Dios, creados en Cristo Jesús para buenas obras, las cuales Dios dispuso de antemano a fin de que las pongamos en práctica”. Pablo está convencido de que fuimos creados por Dios con el propósito de hacer buenas obras. Cuéntanos una o varias situaciones específicas que tú has visto en tu vida o en la vida de otros, las cuales tú consideras que son buenas obras.",
+            categoria: "EFESIOS 2",
+          },
+          {
+            cita: "Efesios 2:11-18",
+            texto:
+              "16) Vs. 11 al 18 – Sea cual sea tu creencia, tu historia o tu religión, al final todos tenemos una cosa en común, y es esa búsqueda de esperanza. Cristo decidió eliminar esa enemistad entre distintos bandos, al brindarnos esperanza a todos por igual. Si Cristo te acepta, entonces tú también puedes aceptar a otros. Cuéntanos alguna anécdota donde te sentiste rechazado o aceptado. ¿De qué manera podrías demostrar aceptación hacia otros?",
+            categoria: "EFESIOS 2",
+          },
+          {
+            cita: "Efesios 2:19",
+            texto:
+              "17) Vs. 19 – “Por lo tanto, ustedes ya no son extraños ni extranjeros, sino conciudadanos de los santos y miembros de la familia de Dios”. Pablo dice que ahora pertenecemos a la familia de Dios. Dentro de toda familia, sus miembros tienen responsabilidades. Cuéntanos cuáles son tus responsabilidades actuales dentro de tu familia sanguínea y cuando termines de nombrarlas, respondamos uno por uno: ¿cuáles serán nuestras responsabilidades dentro de la familia de Dios?",
+            categoria: "EFESIOS 2",
+          },
+          {
+            cita: "Efesios 2:20-21",
+            texto:
+              "18) Vs. 20 y 21 – “…Cristo Jesús mismo la piedra angular…”. En construcción, una piedra angular se define como esa primera piedra que determinará la estructura de las demás. También era la piedra que soportaba la mayor fuerza para sostener grandes muros y esquinas. Pablo trata de explicar que Jesús es nuestro mayor apoyo y el mayor ejemplo a imitar. ¿Pero cómo podemos imitar a alguien que desconocemos? ¿De qué manera podrías conocer a Jesús y su forma de actuar? Cuéntanos esas actitudes que conoces de Jesús y que intentas imitar.",
+            categoria: "EFESIOS 2",
+          },
+          {
+            cita: "Efesios 2:22",
+            texto:
+              "19) Vs. 22 – “En él (Cristo) también ustedes son edificados juntamente para ser morada de Dios por su Espíritu”. He aquí otro propósito para nosotros: ser morada, estancia, casa o residencia de Dios. Cuando Dios vive en ti, se demuestra con una perfecta paz. Cuando pasamos por muchos problemas es porque Dios está buscando tu atención. ¿Crees que Dios vive en ti o está buscando tu atención en la actualidad? ¿Por qué?",
+            categoria: "EFESIOS 2",
+          },
+          {
+            cita: "Efesios 3:1",
+            texto:
+              "20) Vs. 1 – “Por el bien de ustedes los gentiles, me arrodillo en oración”. Preocuparse significa enfocar tu atención en el problema. Ocuparse significa enfocar tus acciones en el problema. Pablo decide reemplazar su preocupación y sustituirla por oración. Compártenos alguna de tus preocupaciones actuales o del pasado.",
+            categoria: "EFESIOS 3",
+          },
+          {
+            cita: "Efesios 3:6",
+            texto:
+              "21) Vs. 6 – “Es decir, que los gentiles son, junto con Israel, beneficiarios de la misma herencia, miembros de un mismo cuerpo y participantes igualmente de la promesa en Cristo Jesús mediante el evangelio”. Pablo afirma que tanto creyentes como no creyentes tienen estos beneficios. Piensa en alguno de tus amigos no creyentes. ¿Cómo podemos darle a tu amigo esta buena noticia de Pablo en la actualidad? ¿Qué se te ocurre?",
+            categoria: "EFESIOS 3",
+          },
+          {
+            cita: "Efesios 3:7",
+            texto:
+              "22) Vs. 7 – “De este evangelio llegué a ser servidor como regalo que Dios, por su gracia, me dio conforme a su poder eficaz”. En esta frase Pablo considera la oportunidad de servir como “un regalo de Dios”. ¿Por qué es más gratificante dar que recibir? ¿Has tenido alguna experiencia? Cuéntanos.",
+            categoria: "EFESIOS 3",
+          },
+          {
+            cita: "Efesios 3:8",
+            texto:
+              "23) Vs. 8 – “Aunque soy el más insignificante de todos los santos, recibí esta gracia de predicar a las naciones las incalculables riquezas de Cristo”. Pablo no se considera el más importante para Dios, pero sí considera que tiene una gran responsabilidad, y esta responsabilidad es de agrado para él. Cuéntanos sobre alguna de tus responsabilidades actuales o pasadas que te agrada tener. O viceversa…",
+            categoria: "EFESIOS 3",
+          },
+          {
+            cita: "Efesios 3:10",
+            texto:
+              "24) Vs. 10 – “El fin de (hacer que todos entiendan el plan de Dios) es que la sabiduría de Dios, en toda su diversidad, se dé a conocer ahora, por medio de la iglesia, a los poderes y autoridades en las regiones celestiales”. ¿Cuál consideras tú que sea esa sabiduría de Dios que la iglesia debe dar a conocer?",
+            categoria: "EFESIOS 3",
+          },
+          {
+            cita: "Efesios 3:12",
+            texto:
+              "25) Vs. 12 – “En Jesús, mediante la fe, disfrutamos de libertad y confianza para acercarnos a Dios”. En otras versiones, Pablo dice que tenemos seguridad y acceso a Dios por medio de la confianza en Jesús, y que esto es un disfrute que proviene de la fe en Jesús. Cuéntanos alguna anécdota de esta semana donde pudiste experimentar esa seguridad y libertad que Dios te da cuando confías en su Hijo Jesús (o viceversa: inseguro, limitado).",
+            categoria: "EFESIOS 3",
+          },
+          {
+            cita: "Efesios 3:16",
+            texto:
+              "26) Vs. 16 – “Le pido (a Dios) que, por medio del Espíritu y con el poder que procede de sus gloriosas riquezas, los fortalezca a ustedes en lo íntimo de su ser”. Pablo pide fortaleza para nosotros. ¿Crees que has necesitado fortaleza sobrenatural dentro de ti durante esta semana? Cuéntanos lo sucedido.",
+            categoria: "EFESIOS 3",
+          },
+          {
+            cita: "Efesios 3:17",
+            texto:
+              "27) Vs. 17 – Pablo pide que “Cristo habite en sus corazones”. Cuando Cristo habita en nuestros corazones, los problemas no desaparecen por arte de magia, pero nuestra perspectiva hacia ellos sí cambia. Sin Cristo en nuestros corazones vivimos ansiosos. Con Cristo en nuestros corazones sentimos paz y esperanza en medio de las dificultades. ¿Qué imaginas? ¿Qué significa para ti que Cristo habite en tu corazón?",
+            categoria: "EFESIOS 3",
+          },
+          {
+            cita: "Efesios 3:20",
+            texto:
+              "28) Vs. 20 – “Al (Creador) que puede hacer muchísimo más que todo lo que podamos imaginarnos o pedir…”. Pablo dice que Dios puede darnos más de lo que podamos pedir o imaginar. ¿Alguna vez has sentido la duda de que Dios pueda hacer algo en tu vida o dar algo a tu vida? Cuéntanos.",
+            categoria: "EFESIOS 3",
+          },
+          {
+            cita: "Efesios 4:1",
+            texto:
+              "29) Vs. 1 – “Por eso yo (Pablo), que estoy preso por la causa del Señor, les ruego que vivan de una manera digna del llamamiento que han recibido”. ¿Sientes que Dios te ha llamado? ¿Cómo te llamó? De acuerdo a tu perspectiva, cuéntanos brevemente: ¿cómo fuiste llamado?",
+            categoria: "EFESIOS 4",
+          },
+          {
+            cita: "Efesios 4:2",
+            texto:
+              "30) Vs. 2 – “Siempre humildes y amables, pacientes, tolerantes unos con otros en amor”. Pablo nos ruega que adoptemos estas cualidades. Cuéntanos una anécdota durante esta semana donde demostraste tolerancia (o viceversa).",
+            categoria: "EFESIOS 4",
+          },
+          {
+            cita: "Efesios 4:3",
+            texto:
+              "31) Vs. 3 – “Esfuércense por mantener la unidad del Espíritu mediante el vínculo de la paz”. El diccionario define paz como una situación en donde no hay luchas entre dos o más partes. Cuéntanos alguna decisión actual en tu vida que te lleva a tener luchas contigo mismo o con tu conciencia.",
+            categoria: "EFESIOS 4",
+          },
+          {
+            cita: "Efesios 4:11",
+            texto:
+              "32) Vs. 11 – “Él mismo (Jesús) constituyó a unos, apóstoles; a otros, profetas; a otros, evangelistas; y a otros, pastores y maestros”. Cuéntanos alguna anécdota personal donde te tocó realizar las tareas que le tocaban a otra persona (en tu trabajo, o en tu familia, o en la universidad…). ¿Cómo te sentiste?",
+            categoria: "EFESIOS 4",
+          },
+          {
+            cita: "Efesios 4:14",
+            texto:
+              "33) Vs. 14 – “Así ya no seremos niños, zarandeados por las olas y llevados de aquí para allá por todo viento de enseñanza y por la astucia y los artificios de quienes emplean artimañas engañosas”. En el versículo anterior, Pablo nos promete una madurez perfecta si nos dedicamos a conocer a Cristo. ¿Qué significa para ti eso de andar zarandeado por las olas?",
+            categoria: "EFESIOS 4",
+          },
+          {
+            cita: "Efesios 4:15",
+            texto:
+              "34) Vs. 15 – “Más bien, al vivir la verdad con amor, creceremos hasta ser en todo como aquel que es la cabeza, es decir, Cristo”. El pastor José Rea decía: “Puedes tener la razón o puedes preservar la relación, pero no puedes tener las dos al mismo tiempo”. Cuéntanos una anécdota personal donde tuviste la razón pero terminaste ahuyentando relaciones. O viceversa: decidiste inclinarte completamente hacia el amor y la aceptación pero sin expresar la verdad, convirtiéndote en un hipócrita.",
+            categoria: "EFESIOS 4",
+          },
+          {
+            cita: "Efesios 4:17",
+            texto:
+              "35) Vs. 17 – “Esto, pues, es lo que les digo y les encargo en el nombre del Señor: que ya no vivan más como los paganos, los cuales viven de acuerdo con sus equivocados criterios”. ¿De qué maneras podemos saber que un criterio es equivocado? Y si has tenido alguna experiencia al respecto, cuéntanos.",
+            categoria: "EFESIOS 4",
+          },
+          {
+            cita: "Efesios 4:19",
+            texto:
+              "36) Vs. 19 – “Han perdido toda vergüenza, se han entregado a la inmoralidad, y no se sacian de cometer toda clase de actos indecentes”. Indicativos de que un acto es indecente: 1) dejamos de sentir vergüenza que otros sienten; 2) cuando lo hacemos no quedamos saciados sino que más bien los alimentamos y crecen más. Cuéntanos de algún conocido tuyo que demuestre estos indicativos.",
+            categoria: "EFESIOS 4",
+          },
+          {
+            cita: "Efesios 4:22",
+            texto:
+              "37) Vs. 22 – “Con respecto a la vida que antes llevaban, se les enseñó que debían quitarse el ropaje de la vieja naturaleza, la cual está corrompida por los deseos engañosos”. ¿Cuáles son esas cosas que representan tu viejo ropaje, que ya te quitaste o que estás en proceso de quitarte, o que desearías quitarte? Cuéntanos.",
+            categoria: "EFESIOS 4",
+          },
+          {
+            cita: "Efesios 5:1",
+            texto:
+              "38) Vs. 1 – “Por tanto, imiten a Dios, como hijos muy amados”. Para poder imitar a Dios, necesitamos conocerlo y saber cómo actúa. Esta es una de las razones por las cuales se hizo hombre, para mostrarnos con su ejemplo. Piensa en alguna anécdota donde imitaste a Dios y cuéntanos: ¿qué beneficio te trajo? O viceversa.",
+            categoria: "EFESIOS 5",
+          },
+          {
+            cita: "Efesios 5:2",
+            texto:
+              "39) Vs. 2 – “Y lleven una vida de amor, así como Cristo nos amó y se entregó por nosotros como ofrenda y sacrificio fragante para Dios”. Jesús nos ayudó a pagar una deuda que no podíamos pagar. Recuerda alguna anécdota donde le hiciste un favor a alguien. ¿Tú esperabas que te pagara el favor? Cuéntanos la anécdota.",
+            categoria: "EFESIOS 5",
+          },
+          {
+            cita: "Efesios 5:3",
+            texto:
+              "40) Vs. 3 – “Entre ustedes ni siquiera debe mencionarse la inmoralidad sexual, ni ninguna clase de impureza o de avaricia, porque eso no es propio del pueblo santo de Dios”. ¿Será que Pablo fue muy exagerado con este versículo? La Biblia dice que nuestro cuerpo es la morada del Espíritu Santo, sin embargo nosotros lo usamos para hacer bromas sobre estos temas, en especial nuestra lengua. Cuéntanos alguna anécdota personal donde decidiste bromear sobre alguno de estos temas y las personas que te escucharon fueron edificadas, crecieron y se convirtieron en mejores personas. O viceversa.",
+            categoria: "EFESIOS 5",
+          },
+          {
+            cita: "Efesios 5:4",
+            texto:
+              "41) Vs. 4 – “Tampoco debe haber palabras indecentes, conversaciones necias ni chistes groseros, todo lo cual está fuera de lugar; haya más bien acción de gracias”. En un mundo donde las conversaciones necias y los chistes groseros abundan, Pablo nos da una salida: sustituirlos por “acción de gracias”. Nuestros chistes de doble sentido nos hacen sentir únicos, pero son más comunes que el aire. Nombra al menos 3 acciones de gracias específicas que podamos aplicar en nuestro día a día para reemplazar esas bromas que nos hacen populares para el mundo e impopulares para Dios.",
+            categoria: "EFESIOS 5",
+          },
+          {
+            cita: "Efesios 5:5",
+            texto:
+              "42) Vs. 5 – “Porque pueden estar seguros de que nadie que sea avaro (es decir, idólatra), inmoral o impuro tendrá herencia en el reino de Cristo y de Dios”. ¿Qué significa para ti eso de “tener herencia en el reino de Cristo”?",
+            categoria: "EFESIOS 5",
+          },
+          {
+            cita: "Efesios 5:6-7",
+            texto:
+              "43) Vs. 6-7 – “Que nadie los engañe con argumentaciones vanas, porque por esto viene el castigo de Dios sobre los que viven en la desobediencia. Así que no se hagan cómplices de ellos”. Aquí vemos tres acciones: 1) no dejarse engañar, 2) no desobedecer, 3) no ser cómplice. Cuéntanos alguna anécdota en donde no te dejaste engañar, tampoco desobedeciste a Dios, pero sí terminaste haciéndote cómplice.",
+            categoria: "EFESIOS 5",
+          },
+          {
+            cita: "Efesios 5:8",
+            texto:
+              "44) Vs. 8 – “Porque ustedes antes eran oscuridad, pero ahora son luz en el Señor. Vivan como hijos de luz”. Pablo viene de nombrar una lista de cosas que deberíamos y no deberíamos hacer, hasta que llega a este versículo donde nos da una razón para obedecer. Vivimos en un mundo necesitado de luz. ¿De qué maneras tú puedes ser luz para tu entorno?",
+            categoria: "EFESIOS 5",
+          },
+          {
+            cita: "Efesios 5:9",
+            texto:
+              "45) Vs. 9 – “El fruto de la luz consiste en toda bondad, justicia y verdad”. Pablo dice que cuando eres una lámpara efectiva que transmite la luz de Dios a este mundo, se nota a través de tu bondad, justicia y verdad. No son una obligación, sino un producto de querer imitar a Jesús. Cuéntanos alguna anécdota donde alguien te dijo: “oye, qué bondadoso eres”, “epa, qué justo eres”, “oye, qué íntegro eres”. O viceversa. O que tú se lo hayas dicho a alguien.",
+            categoria: "EFESIOS 5",
+          },
+          {
+            cita: "Efesios 5:10",
+            texto:
+              "46) Vs. 10 – “Y comprueben lo que agrada al Señor”. Los científicos comprueban sus teorías con el método del ensayo y el error. Los médicos comprueban con radiografías y exámenes. ¿Cómo compruebas tú que algo le agrada a Dios? Cuéntanos alguna anécdota donde lograste comprobar que algo le gustaba a Dios, o que no le gustaba.",
+            categoria: "EFESIOS 5",
+          },
+          {
+            cita: "Efesios 5:12",
+            texto:
+              "47) Vs. 12 – “Porque da vergüenza aun mencionar lo que los desobedientes hacen en secreto”. Cuando hacemos algo malo en público, posiblemente fue un error. Pero cuando hacemos algo malo en secreto, sabemos que está mal y por eso lo ocultamos. ¿Por qué hacemos esas cosas aun cuando sabemos que nos perjudicarán? ¿Por qué el ser humano, buscando el progreso, se auto-perjudica? ¿Es acaso esto una evidencia de la veracidad de la Biblia?",
+            categoria: "EFESIOS 5",
+          },
+          {
+            cita: "Efesios 6:1",
+            texto:
+              "48) Vs. 1 – “Hijos, obedezcan en el Señor a sus padres, porque esto es justo”. Una cosa es obedecer a nuestros padres, y otra cosa es obedecer “en el Señor” a nuestros padres. Según tú, ¿cuál es la diferencia?",
+            categoria: "EFESIOS 6",
+          },
+          {
+            cita: "Efesios 6:2",
+            texto:
+              "49) Vs. 2 – “Honra a tu padre y a tu madre —que es el primer mandamiento con promesa— para que te vaya bien y disfrutes de una larga vida en la tierra”. ¿Crees que vale la pena tener una larga vida en esta tierra tan impregnada de injusticias?",
+            categoria: "EFESIOS 6",
+          },
+          {
+            cita: "Efesios 6:4",
+            texto:
+              "50) Vs. 4 – “Y ustedes, padres, no hagan enojar a sus hijos, sino críenlos según la disciplina e instrucción del Señor”. Cuéntanos una anécdota donde tus padres te hicieron enojar.",
+            categoria: "EFESIOS 6",
+          },
+          {
+            cita: "Efesios 6:5",
+            texto:
+              "51) Vs. 5 – “Esclavos, obedezcan a sus amos terrenales con respeto y temor, y con integridad de corazón, como a Cristo”. En una cultura donde la mano de obra era la esclavitud, Pablo se dirige a ellos con estas órdenes que promueven la paz. Cuéntanos una anécdota en tu trabajo donde se te haya hecho difícil obedecer a tus superiores.",
+            categoria: "EFESIOS 6",
+          },
+          {
+            cita: "Efesios 6:6",
+            texto:
+              "52) Vs. 6 – “No lo hagan sólo cuando los estén mirando, como los que quieren ganarse el favor humano, sino como esclavos de Cristo, haciendo de todo corazón la voluntad de Dios”. Pablo ordena que actuemos con integridad siempre y no solo cuando nos ven. Cuéntanos alguna anécdota donde actuaste para ser bien visto por otros y las consecuencias que obtuviste.",
+            categoria: "EFESIOS 6",
+          },
+          {
+            cita: "Efesios 6:7",
+            texto:
+              "53) Vs. 7 – “Sirvan de buena gana, como quien sirve al Señor y no a los hombres”. Cada cosa que hacemos debe ser “de buena gana”. Según Pablo, es más importante tu buena actitud al actuar. ¿Será difícil esta orden que Pablo nos da? Cuéntanos alguna anécdota de esta semana donde hiciste algo de mala gana y al finalizar, lee en voz alta los versículos 7 y 8.",
+            categoria: "EFESIOS 6",
+          },
+          {
+            cita: "Efesios 6:12",
+            texto:
+              "54) Vs. 12 – “Porque nuestra lucha no es contra seres humanos, sino contra poderes, contra autoridades, contra potestades que dominan este mundo de tinieblas, contra fuerzas espirituales malignas en las regiones celestiales”. Pablo dice que la lucha no es entre nosotros, sino contra fuerzas espirituales que nos atan con “patrones tóxicos”. Cuéntanos una anécdota donde deseaste mal a algún otro ser humano.",
+            categoria: "EFESIOS 6",
+          },
+          {
+            cita: "Efesios 6:13",
+            texto:
+              "55) Vs. 13 – “Por lo tanto, pónganse toda la armadura de Dios, para que cuando llegue el día malo puedan resistir hasta el fin con firmeza”. Pablo confirma que los días malos van a venir. Esto es pesimismo si no hacemos nada, pero es prevención si nos preparamos. Cuéntanos: ¿qué cosas estás haciendo que te preparan para afrontar esos días?",
+            categoria: "EFESIOS 6",
+          },
+          {
+            cita: "Efesios 6:14",
+            texto:
+              "56) Vs. 14 – La armadura de Dios: el cinturón de la verdad, la coraza de justicia, los zapatos para proclamar el evangelio de la paz, el escudo de la fe, el casco de la salvación y la espada que es la Palabra de Dios. Seis instrumentos para el día a día. ¿Cuál de ellos crees que es el más difícil de portar para ti? ¿Por qué?",
+            categoria: "EFESIOS 6",
+          },
+          {
+            cita: "Efesios 6:18",
+            texto:
+              "57) Vs. 18 – “Oren en el Espíritu en todo momento, con peticiones y ruegos. Manténganse alerta y perseveren en oración por todos los santos”. Pablo dice que el sinónimo de “perseverar en la oración” es “estar alerta”. ¿Has estado alerta durante esta semana? ¿Qué crees que debes empezar a hacer para estar más alerta, es decir, perseverar más en la oración?",
+            categoria: "EFESIOS 6",
+          },
+        ],
+      };
+      /* ============ FIN DE AJUSTES (no toques debajo) ============ */
+
+      (function () {
+        const config = window.CONFIG || CONFIG;
+        const canvas = document.getElementById("ruleta");
+        const ctx = canvas.getContext("2d");
+        const wrap = document.getElementById("wheelWrap");
+        const powerArc = document.getElementById("powerArc");
+        const resultado = document.getElementById("resultado");
+        const CIRC = 2 * Math.PI * 48;
+
+        let anguloActual = 0,
+          girando = false,
+          cargando = false;
+        let cargaInicio = 0,
+          cargaFrame = null;
+        let audioCtx = null,
+          cargaOsc = null,
+          cargaGain = null;
+
+        document.getElementById("titulo").textContent =
+          config.titulo || "Ruleta de Efesios";
+        document.getElementById("subtitulo").textContent =
+          config.subtitulo || "";
+        document.title = config.titulo || "Ruleta de Efesios";
+        const f = config.fondoDegradado || ["#7B2FF7", "#F72F9A", "#FF8A3D"];
+        document.documentElement.style.setProperty("--fondo1", f[0]);
+        document.documentElement.style.setProperty("--fondo2", f[1]);
+        document.documentElement.style.setProperty("--fondo3", f[2]);
+        document.documentElement.style.setProperty(
+          "--potencia",
+          config.colorPotencia || "#FFD93D",
+        );
+        powerArc.style.strokeDasharray = String(CIRC);
+        powerArc.style.strokeDashoffset = String(CIRC);
+
+        dibujarRuleta(anguloActual);
+
+        // Sin setPointerCapture: era lo que disparaba el error
+        // "Unsafe attempt to load URL file://..." en algunos navegadores con file://.
+        wrap.addEventListener("pointerdown", empezarCarga);
+        window.addEventListener("pointerup", soltar);
+        window.addEventListener("pointercancel", cancelarCarga);
+        wrap.addEventListener("contextmenu", function (e) {
+          e.preventDefault();
+        });
+
+        function dibujarRuleta(rotacion) {
+          const etiquetas = config.etiquetasRuleta || [];
+          const colores = config.coloresRuleta || ["#FF595E", "#FFCA3A"];
+          const n = etiquetas.length || 1;
+          const cx = canvas.width / 2,
+            cy = canvas.height / 2;
+          const radio = canvas.width / 2 - 6;
+          const arco = (Math.PI * 2) / n;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          for (let i = 0; i < n; i++) {
+            const inicio = rotacion + i * arco,
+              fin = inicio + arco;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, radio, inicio, fin);
+            ctx.closePath();
+            ctx.fillStyle = colores[i % colores.length];
+            ctx.fill();
+            ctx.strokeStyle = "#fff";
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(inicio + arco / 2);
+            ctx.textAlign = "right";
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 26px system-ui, sans-serif";
+            ctx.fillText(etiquetas[i] || "", radio - 22, 9);
+            ctx.restore();
+            ctx.beginPath();
+            ctx.arc(
+              cx + Math.cos(fin) * (radio - 8),
+              cy + Math.sin(fin) * (radio - 8),
+              6,
+              0,
+              Math.PI * 2,
+            );
+            ctx.fillStyle = "#fff";
+            ctx.fill();
+          }
+        }
+
+        function easeOutCubic(t) {
+          return 1 - Math.pow(1 - t, 3);
+        }
+
+        function empezarCarga(e) {
+          if (girando || cargando) return;
+          if (e) {
+            try {
+              e.preventDefault();
+            } catch (_) {}
+          }
+          cargando = true;
+          cargaInicio = performance.now();
+          resultado.classList.add("oculto");
+          wrap.classList.add("cargando");
+          canvas.classList.add("girando");
+          iniciarSonidoCarga();
+          actualizarAnillo();
+        }
+
+        function fuerzaActual() {
+          const max = config.tiempoCargaMaxMs || 1500;
+          const p = Math.min((performance.now() - cargaInicio) / max, 1);
+          const minF =
+            config.fuerzaMinima !== undefined ? config.fuerzaMinima : 0.2;
+          return { p: p, fuerza: minF + (1 - minF) * p };
+        }
+
+        function actualizarAnillo() {
+          if (!cargando) return;
+          const st = fuerzaActual();
+          powerArc.style.strokeDashoffset = String(CIRC * (1 - st.p));
+          cargaFrame = requestAnimationFrame(actualizarAnillo);
+        }
+
+        function cancelarCarga() {
+          if (!cargando) return;
+          cargando = false;
+          if (cargaFrame) cancelAnimationFrame(cargaFrame);
+          detenerSonidoCarga();
+          wrap.classList.remove("cargando");
+          canvas.classList.remove("girando");
+          powerArc.style.strokeDashoffset = String(CIRC);
+        }
+
+        function soltar() {
+          if (!cargando || girando) return;
+          cargando = false;
+          if (cargaFrame) cancelAnimationFrame(cargaFrame);
+          detenerSonidoCarga();
+          wrap.classList.remove("cargando");
+          let st = fuerzaActual();
+          let fuerza = st.fuerza;
+          if (performance.now() - cargaInicio < 150) fuerza = 0.55; // clic corto = fuerza media
+          powerArc.style.strokeDashoffset = String(CIRC);
+          girarConFuerza(fuerza);
+        }
+
+        function girarConFuerza(fuerza) {
+          girando = true;
+          const base = (config.duracionSegundos || 5) * 1000;
+          const duracion = base * (0.6 + fuerza * 0.6);
+          const min =
+            config.vueltasMinimas !== undefined ? config.vueltasMinimas : 5;
+          const max =
+            config.vueltasMaximas !== undefined ? config.vueltasMaximas : 8;
+          const vueltas = min + fuerza * (max - min);
+          const extra = Math.random() * Math.PI * 2;
+          const inicial = anguloActual;
+          const total = vueltas * Math.PI * 2 + extra;
+          const t0 = performance.now();
+          let ultimoTick = 0;
+          function animar(ahora) {
+            const t = Math.min((ahora - t0) / duracion, 1);
+            const eased = easeOutCubic(t);
+            anguloActual = inicial + total * eased;
+            dibujarRuleta(anguloActual);
+            if (ahora - ultimoTick > 120 + eased * 400) {
+              tickSonido();
+              ultimoTick = ahora;
+            }
+            if (t < 1) requestAnimationFrame(animar);
+            else detener();
+          }
+          requestAnimationFrame(animar);
+        }
+
+        function detener() {
+          girando = false;
+          canvas.classList.remove("girando");
+          const textos = config.textos || [];
+          if (!textos.length) return;
+          const elegido = textos[Math.floor(Math.random() * textos.length)];
+          document.getElementById("resCategoria").textContent =
+            "✦ " + (elegido.categoria || "").toUpperCase() + " ✦";
+          document.getElementById("resTexto").textContent =
+            '"' + elegido.texto + '"';
+          document.getElementById("resCita").textContent = "— " + elegido.cita;
+          resultado.classList.remove("oculto");
+          try {
+            resultado.scrollIntoView({ block: "nearest" });
+          } catch (_) {}
+          if (config.mostrarConfeti) lanzarConfeti();
+        }
+
+        function ctxAudio() {
+          if (!audioCtx)
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          if (audioCtx.state === "suspended") {
+            try {
+              audioCtx.resume();
+            } catch (_) {}
+          }
+          return audioCtx;
+        }
+
+        function tickSonido() {
+          if (!config.mostrarSonido) return;
+          try {
+            const ac = ctxAudio();
+            const osc = ac.createOscillator(),
+              g = ac.createGain();
+            osc.connect(g);
+            g.connect(ac.destination);
+            osc.type = "triangle";
+            osc.frequency.value = 500 + Math.random() * 300;
+            g.gain.setValueAtTime(0.08, ac.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.07);
+            osc.start();
+            osc.stop(ac.currentTime + 0.08);
+          } catch (_) {}
+        }
+
+        function iniciarSonidoCarga() {
+          if (!config.mostrarSonido) return;
+          try {
+            const ac = ctxAudio();
+            cargaOsc = ac.createOscillator();
+            cargaGain = ac.createGain();
+            cargaOsc.connect(cargaGain);
+            cargaGain.connect(ac.destination);
+            cargaOsc.type = "sawtooth";
+            cargaOsc.frequency.setValueAtTime(120, ac.currentTime);
+            cargaOsc.frequency.linearRampToValueAtTime(
+              520,
+              ac.currentTime + (config.tiempoCargaMaxMs || 1500) / 1000,
+            );
+            cargaGain.gain.setValueAtTime(0.04, ac.currentTime);
+            cargaOsc.start();
+          } catch (_) {}
+        }
+
+        function detenerSonidoCarga() {
+          try {
+            if (cargaOsc) {
+              try {
+                cargaOsc.stop();
+              } catch (_) {}
+              try {
+                cargaOsc.disconnect();
+              } catch (_) {}
+              try {
+                cargaGain.disconnect();
+              } catch (_) {}
+              cargaOsc = null;
+            }
+          } catch (_) {}
+        }
+
+        function lanzarConfeti() {
+          const cont = document.getElementById("confeti");
+          cont.innerHTML = "";
+          const colores = config.coloresRuleta || ["#FF595E", "#FFCA3A"];
+          for (let i = 0; i < 80; i++) {
+            const s = document.createElement("span");
+            s.style.left = Math.random() * 100 + "vw";
+            s.style.background = colores[i % colores.length];
+            s.style.animationDuration = 2 + Math.random() * 2 + "s";
+            s.style.width = 6 + Math.random() * 10 + "px";
+            s.style.height = 8 + Math.random() * 10 + "px";
+            s.style.animationDelay = Math.random() * 0.4 + "s";
+            cont.appendChild(s);
+            setTimeout(function () {
+              try {
+                s.remove();
+              } catch (_) {}
+            }, 4500);
+          }
+        }
+      })();
+    </script>
+  </body>
+</html>
