@@ -1,0 +1,25 @@
+{
+  "name": "Ruleta de Efesios",
+  "short_name": "Efesios",
+  "description": "Gira la ruleta y descubre una pregunta del libro de Efesios.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "lang": "es",
+  "theme_color": "#7B2FF7",
+  "background_color": "#7B2FF7",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

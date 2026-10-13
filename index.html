@@ -2,7 +2,21 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#7B2FF7" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="Efesios" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
     <title>Ruleta de Efesios</title>
     <style>
       :root {
@@ -189,13 +203,35 @@
         pointer-events: none;
       }
       .resultado {
-        margin-top: 24px;
+        position: relative;
+        margin-top: 60px;
         background: #fff;
         color: #2d2a55;
         border-radius: 24px;
-        padding: 26px 22px;
+        padding: 34px 22px 26px;
         box-shadow: 0 14px 30px rgba(0, 0, 0, 0.3);
         animation: pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+        margin-bottom: 60px;
+      }
+      .btn-cerrar {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 3px solid #2d2a55;
+        background: #2d2a55;
+        color: #fff;
+        font-size: 1.3rem;
+        font-weight: 800;
+        line-height: 1;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        transition: transform 0.12s ease;
+      }
+      .btn-cerrar:hover {
+        transform: scale(1.1);
       }
       .resultado.oculto {
         display: none;
@@ -249,7 +285,9 @@
         font-weight: 800;
         font-size: 0.85rem;
         cursor: pointer;
-        transition: transform 0.12s ease, background 0.12s ease;
+        transition:
+          transform 0.12s ease,
+          background 0.12s ease;
       }
       .btn-reset:hover {
         transform: scale(1.04);
@@ -391,6 +429,7 @@
       </section>
 
       <section id="resultado" class="resultado oculto" aria-live="polite">
+        <button id="btnCerrar" class="btn-cerrar" type="button" aria-label="Cerrar pregunta">✕</button>
         <p id="resCategoria" class="res-categoria"></p>
         <blockquote id="resTexto" class="res-texto"></blockquote>
         <p id="resCita" class="res-cita"></p>
@@ -400,18 +439,31 @@
         <div class="final-emoji" aria-hidden="true">🎉</div>
         <p id="finalCategoria" class="res-categoria">COMPLETADO</p>
         <p class="final-titulo">¡Felicidades, has hecho todas!</p>
-        <p id="finalSub" class="final-sub">Has visto las 57 preguntas de Efesios.</p>
-        <button id="btnResetFinal" class="btn-reset-grande" type="button">↺ Empezar de cero</button>
+        <p id="finalSub" class="final-sub">
+          Has visto las 57 preguntas de Efesios.
+        </p>
+        <button id="btnResetFinal" class="btn-reset-grande" type="button">
+          ↺ Empezar de cero
+        </button>
       </section>
-
     </main>
 
     <footer class="footer-fijo">
       <div id="panelProgreso" class="panel oculto" aria-live="polite">
         <p id="progreso" class="progreso"></p>
-        <button id="btnReset" class="btn-reset" type="button">↺ empezar de cero</button>
+        <button id="btnReset" class="btn-reset" type="button">
+          ↺ empezar de cero
+        </button>
       </div>
-      <button id="btnPanel" class="btn-panel" type="button" aria-expanded="false" aria-controls="panelProgreso">··· ver progreso</button>
+      <button
+        id="btnPanel"
+        class="btn-panel"
+        type="button"
+        aria-expanded="false"
+        aria-controls="panelProgreso"
+      >
+        ··· ver progreso
+      </button>
     </footer>
 
     <div id="confeti" class="confeti" aria-hidden="true"></div>
@@ -822,7 +874,11 @@
             if (!raw) return new Set();
             const arr = JSON.parse(raw);
             if (!Array.isArray(arr)) return new Set();
-            return new Set(arr.filter(function (n) { return Number.isInteger(n); }));
+            return new Set(
+              arr.filter(function (n) {
+                return Number.isInteger(n);
+              }),
+            );
           } catch (_) {
             return new Set(); // file:// + modo privado: memoria de sesión
           }
@@ -830,7 +886,10 @@
 
         function guardarVistos() {
           try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(vistos)));
+            localStorage.setItem(
+              STORAGE_KEY,
+              JSON.stringify(Array.from(vistos)),
+            );
           } catch (_) {}
         }
 
@@ -844,7 +903,9 @@
         }
 
         function pendientes() {
-          return (config.textos || []).filter(function (t) { return !vistos.has(numDe(t)); });
+          return (config.textos || []).filter(function (t) {
+            return !vistos.has(numDe(t));
+          });
         }
 
         function textoProgreso() {
@@ -916,26 +977,44 @@
         wrap.addEventListener("contextmenu", function (e) {
           e.preventDefault();
         });
-        document.getElementById("btnReset").addEventListener("click", function () {
-          if (window.confirm("¿Empezar de cero? Se borrará tu progreso.")) resetear();
-        });
-        document.getElementById("btnResetFinal").addEventListener("click", function () {
-          if (window.confirm("¿Empezar de cero? Se borrará tu progreso.")) resetear();
-        });
-        document.getElementById("btnPanel").addEventListener("click", function () {
-          const panel = document.getElementById("panelProgreso");
-          const btn = document.getElementById("btnPanel");
-          const abierto = panel.classList.toggle("oculto") === false;
-          btn.setAttribute("aria-expanded", abierto ? "true" : "false");
-          btn.textContent = abierto ? "··· ocultar" : "··· ver progreso";
-          if (abierto) progreso.textContent = textoProgreso();
-        });
+        document
+          .getElementById("btnReset")
+          .addEventListener("click", function () {
+            if (window.confirm("¿Empezar de cero? Se borrará tu progreso."))
+              resetear();
+          });
+        document
+          .getElementById("btnCerrar")
+          .addEventListener("click", function () {
+            resultado.classList.add("oculto");
+          });
+        document
+          .getElementById("btnResetFinal")
+          .addEventListener("click", function () {
+            if (window.confirm("¿Empezar de cero? Se borrará tu progreso."))
+              resetear();
+          });
+        document
+          .getElementById("btnPanel")
+          .addEventListener("click", function () {
+            const panel = document.getElementById("panelProgreso");
+            const btn = document.getElementById("btnPanel");
+            const abierto = panel.classList.toggle("oculto") === false;
+            btn.setAttribute("aria-expanded", abierto ? "true" : "false");
+            btn.textContent = abierto ? "··· ocultar" : "··· ver progreso";
+            if (abierto) progreso.textContent = textoProgreso();
+          });
         // Clic en cualquier otro lugar oculta el panel si está desplegado
         document.addEventListener("pointerdown", function (e) {
           const panel = document.getElementById("panelProgreso");
           if (!panel || panel.classList.contains("oculto")) return;
           try {
-            if (e.target && e.target.closest && e.target.closest("#panelProgreso, #btnPanel")) return;
+            if (
+              e.target &&
+              e.target.closest &&
+              e.target.closest("#panelProgreso, #btnPanel")
+            )
+              return;
           } catch (_) {}
           panel.classList.add("oculto");
           const btn = document.getElementById("btnPanel");
@@ -994,6 +1073,9 @@
 
         function empezarCarga(e) {
           if (girando || cargando) return;
+          // Tarjeta visible = lectura en curso: no se puede girar hasta cerrar la ✕
+          if (!resultado.classList.contains("oculto")) return;
+          if (!finalSec.classList.contains("oculto")) return;
           if (!pendientes().length) {
             mostrarFinal();
             return;
@@ -1048,6 +1130,9 @@
           let fuerza = st.fuerza;
           if (performance.now() - cargaInicio < 150) fuerza = 0.55; // clic corto = fuerza media
           powerArc.style.strokeDashoffset = String(CIRC);
+          try {
+            if (navigator.vibrate) navigator.vibrate(15);
+          } catch (_) {}
           girarConFuerza(fuerza);
         }
 
@@ -1191,6 +1276,21 @@
             }, 4500);
           }
         }
+      })();
+    </script>
+    <script>
+      // Registro del Service Worker solo en http(s) — en file:// se omite sin errores.
+      (function () {
+        try {
+          if (
+            "serviceWorker" in navigator &&
+            /^https?:$/.test(window.location.protocol)
+          ) {
+            window.addEventListener("load", function () {
+              navigator.serviceWorker.register("sw.js").catch(function () {});
+            });
+          }
+        } catch (_) {}
       })();
     </script>
   </body>
