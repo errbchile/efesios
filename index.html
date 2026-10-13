@@ -34,7 +34,7 @@
         background-attachment: fixed;
         display: flex;
         justify-content: center;
-        padding: 28px 16px 48px;
+        padding: 28px 16px 110px;
         overflow-x: hidden;
         user-select: none;
         -webkit-user-select: none;
@@ -233,6 +233,113 @@
         color: var(--fondo2);
         font-size: 1.05rem;
       }
+      .progreso {
+        margin-top: 14px;
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: #6b678f;
+      }
+      .btn-reset {
+        margin-top: 10px;
+        background: transparent;
+        color: #6b678f;
+        border: 2px solid #d9d6ef;
+        border-radius: 999px;
+        padding: 7px 20px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: transform 0.12s ease, background 0.12s ease;
+      }
+      .btn-reset:hover {
+        transform: scale(1.04);
+        background: #f1efff;
+      }
+      .btn-panel {
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.85);
+        font-weight: 700;
+        font-size: 0.8rem;
+        cursor: pointer;
+        opacity: 0.7;
+        pointer-events: auto;
+      }
+      .btn-panel:hover {
+        opacity: 1;
+        text-decoration: underline;
+      }
+      .footer-fijo {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 50;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px calc(10px + env(safe-area-inset-bottom));
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.35));
+        pointer-events: none;
+      }
+      .footer-fijo .panel {
+        pointer-events: auto;
+        margin: 0;
+        width: min(92vw, 420px);
+        max-height: 40vh;
+        overflow-y: auto;
+      }
+      .panel {
+        margin: 10px auto 0;
+        max-width: 560px;
+        background: rgba(255, 255, 255, 0.16);
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        border-radius: 16px;
+        padding: 14px 18px 16px;
+      }
+      .panel.oculto {
+        display: none;
+      }
+      .panel .progreso {
+        margin-top: 0;
+        color: #fff;
+      }
+      .panel .btn-reset {
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.6);
+      }
+      .panel .btn-reset:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      .final-emoji {
+        font-size: 3rem;
+      }
+      .final-titulo {
+        font-size: 1.4rem;
+        font-weight: 800;
+        margin: 10px 0 6px;
+      }
+      .final-sub {
+        font-weight: 600;
+        color: #6b678f;
+        line-height: 1.5;
+      }
+      .btn-reset-grande {
+        margin-top: 18px;
+        background: #2d2a55;
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        padding: 12px 34px;
+        font-weight: 800;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: transform 0.12s ease;
+      }
+      .btn-reset-grande:hover {
+        transform: scale(1.05);
+      }
       .confeti span {
         position: fixed;
         top: -20px;
@@ -288,7 +395,24 @@
         <blockquote id="resTexto" class="res-texto"></blockquote>
         <p id="resCita" class="res-cita"></p>
       </section>
+
+      <section id="final" class="resultado oculto" aria-live="polite">
+        <div class="final-emoji" aria-hidden="true">🎉</div>
+        <p id="finalCategoria" class="res-categoria">COMPLETADO</p>
+        <p class="final-titulo">¡Felicidades, has hecho todas!</p>
+        <p id="finalSub" class="final-sub">Has visto las 57 preguntas de Efesios.</p>
+        <button id="btnResetFinal" class="btn-reset-grande" type="button">↺ Empezar de cero</button>
+      </section>
+
     </main>
+
+    <footer class="footer-fijo">
+      <div id="panelProgreso" class="panel oculto" aria-live="polite">
+        <p id="progreso" class="progreso"></p>
+        <button id="btnReset" class="btn-reset" type="button">↺ empezar de cero</button>
+      </div>
+      <button id="btnPanel" class="btn-panel" type="button" aria-expanded="false" aria-controls="panelProgreso">··· ver progreso</button>
+    </footer>
 
     <div id="confeti" class="confeti" aria-hidden="true"></div>
 
@@ -684,7 +808,78 @@
         const wrap = document.getElementById("wheelWrap");
         const powerArc = document.getElementById("powerArc");
         const resultado = document.getElementById("resultado");
+        const finalSec = document.getElementById("final");
+        const progreso = document.getElementById("progreso");
         const CIRC = 2 * Math.PI * 48;
+
+        // ---- Vistos en localStorage (sin repetidos) ----
+        const STORAGE_KEY = "efesios_vistos_v1";
+        let vistos = cargarVistos();
+
+        function cargarVistos() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return new Set();
+            const arr = JSON.parse(raw);
+            if (!Array.isArray(arr)) return new Set();
+            return new Set(arr.filter(function (n) { return Number.isInteger(n); }));
+          } catch (_) {
+            return new Set(); // file:// + modo privado: memoria de sesión
+          }
+        }
+
+        function guardarVistos() {
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(vistos)));
+          } catch (_) {}
+        }
+
+        function numDe(entry) {
+          const m = /^\s*(\d+)\)/.exec(entry.texto || "");
+          return m ? parseInt(m[1], 10) : -1;
+        }
+
+        function totalPreguntas() {
+          return (config.textos || []).length;
+        }
+
+        function pendientes() {
+          return (config.textos || []).filter(function (t) { return !vistos.has(numDe(t)); });
+        }
+
+        function textoProgreso() {
+          const total = totalPreguntas();
+          const hechas = vistos.size;
+          const faltan = Math.max(total - hechas, 0);
+          return "Llevas " + hechas + " de " + total + " · te faltan " + faltan;
+        }
+
+        function mostrarFinal() {
+          resultado.classList.add("oculto");
+          finalSec.classList.remove("oculto");
+          document.getElementById("finalSub").textContent =
+            "Has visto las " + totalPreguntas() + " preguntas de Efesios.";
+          try {
+            finalSec.scrollIntoView({ block: "nearest" });
+          } catch (_) {}
+          if (config.mostrarConfeti) lanzarConfeti();
+        }
+
+        function resetear() {
+          vistos = new Set();
+          guardarVistos();
+          finalSec.classList.add("oculto");
+          resultado.classList.add("oculto");
+          powerArc.style.strokeDashoffset = String(CIRC);
+          progreso.textContent = textoProgreso();
+          const panel = document.getElementById("panelProgreso");
+          const btn = document.getElementById("btnPanel");
+          if (panel && btn) {
+            panel.classList.add("oculto");
+            btn.setAttribute("aria-expanded", "false");
+            btn.textContent = "··· ver progreso";
+          }
+        }
 
         let anguloActual = 0,
           girando = false,
@@ -721,6 +916,35 @@
         wrap.addEventListener("contextmenu", function (e) {
           e.preventDefault();
         });
+        document.getElementById("btnReset").addEventListener("click", function () {
+          if (window.confirm("¿Empezar de cero? Se borrará tu progreso.")) resetear();
+        });
+        document.getElementById("btnResetFinal").addEventListener("click", function () {
+          if (window.confirm("¿Empezar de cero? Se borrará tu progreso.")) resetear();
+        });
+        document.getElementById("btnPanel").addEventListener("click", function () {
+          const panel = document.getElementById("panelProgreso");
+          const btn = document.getElementById("btnPanel");
+          const abierto = panel.classList.toggle("oculto") === false;
+          btn.setAttribute("aria-expanded", abierto ? "true" : "false");
+          btn.textContent = abierto ? "··· ocultar" : "··· ver progreso";
+          if (abierto) progreso.textContent = textoProgreso();
+        });
+        // Clic en cualquier otro lugar oculta el panel si está desplegado
+        document.addEventListener("pointerdown", function (e) {
+          const panel = document.getElementById("panelProgreso");
+          if (!panel || panel.classList.contains("oculto")) return;
+          try {
+            if (e.target && e.target.closest && e.target.closest("#panelProgreso, #btnPanel")) return;
+          } catch (_) {}
+          panel.classList.add("oculto");
+          const btn = document.getElementById("btnPanel");
+          if (btn) {
+            btn.setAttribute("aria-expanded", "false");
+            btn.textContent = "··· ver progreso";
+          }
+        });
+        if (!pendientes().length && totalPreguntas() > 0) mostrarFinal();
 
         function dibujarRuleta(rotacion) {
           const etiquetas = config.etiquetasRuleta || [];
@@ -770,6 +994,10 @@
 
         function empezarCarga(e) {
           if (girando || cargando) return;
+          if (!pendientes().length) {
+            mostrarFinal();
+            return;
+          }
           if (e) {
             try {
               e.preventDefault();
@@ -778,6 +1006,7 @@
           cargando = true;
           cargaInicio = performance.now();
           resultado.classList.add("oculto");
+          finalSec.classList.add("oculto");
           wrap.classList.add("cargando");
           canvas.classList.add("girando");
           iniciarSonidoCarga();
@@ -856,12 +1085,21 @@
           canvas.classList.remove("girando");
           const textos = config.textos || [];
           if (!textos.length) return;
-          const elegido = textos[Math.floor(Math.random() * textos.length)];
+          const restan = pendientes();
+          if (!restan.length) {
+            mostrarFinal();
+            return;
+          }
+          const elegido = restan[Math.floor(Math.random() * restan.length)];
+          vistos.add(numDe(elegido));
+          guardarVistos();
           document.getElementById("resCategoria").textContent =
             "✦ " + (elegido.categoria || "").toUpperCase() + " ✦";
           document.getElementById("resTexto").textContent =
             '"' + elegido.texto + '"';
           document.getElementById("resCita").textContent = "— " + elegido.cita;
+          progreso.textContent = textoProgreso();
+          finalSec.classList.add("oculto");
           resultado.classList.remove("oculto");
           try {
             resultado.scrollIntoView({ block: "nearest" });
